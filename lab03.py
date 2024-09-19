@@ -42,7 +42,7 @@ def merge(arr, temp, p, q, r):
             arr[k] = temp[i]
             i += 1
 
-# Hybrid Merge Sort
+# Hybrid Merge Sort Implementation
 def hybrid_merge_sort(arr, temp, p, r, threshold):
     if r - p + 1 <= threshold:
         insertion_sort(arr[p:r + 1])
@@ -53,13 +53,19 @@ def hybrid_merge_sort(arr, temp, p, r, threshold):
             hybrid_merge_sort(arr, temp, q + 1, r, threshold)
             merge(arr, temp, p, q, r)
 
-# Function to read arrays from a single text file
+# Function to read arrays from a single text file and handle commas
 def read_arrays_from_file(filename):
     arrays = []
     with open(filename, 'r') as file:
         for line in file:
-            array = list(map(int, line.strip().split()))
-            arrays.append(array)
+            line = line.strip()  # Remove leading/trailing whitespaces
+            if line:  # Ensure the line isn't empty
+                try:
+                    # Replace commas with spaces, then split and convert to integers
+                    array = list(map(int, line.replace(',', '').split()))
+                    arrays.append(array)
+                except ValueError as e:
+                    print(f"Error reading line '{line}' in file {filename}: {e}")
     return arrays
 
 # Function to read arrays from multiple text files
@@ -115,17 +121,20 @@ def test_hybrid_merge_sort(arrays, thresholds):
 
 # Plotting function to visualize the results
 def plot_results(array_sizes, merge_times, insertion_times, hybrid_times):
+    plt.figure(figsize=(12, 8))
+
     # Plot Merge Sort vs Insertion Sort
-    plt.plot(array_sizes, merge_times, label='Merge Sort')
-    plt.plot(array_sizes, insertion_times, label='Insertion Sort')
+    plt.plot(array_sizes, merge_times, label='Merge Sort', marker='o')
+    plt.plot(array_sizes, insertion_times, label='Insertion Sort', marker='x')
     
     for threshold, times in hybrid_times.items():
-        plt.plot(array_sizes, times, label=f'Hybrid Merge Sort (threshold={threshold})')
+        plt.plot(array_sizes, times, label=f'Hybrid Merge Sort (threshold={threshold})', marker='^')
 
     plt.xlabel('Array Size')
     plt.ylabel('Execution Time (nanoseconds)')
     plt.title('Sorting Algorithms: Merge Sort, Insertion Sort, and Hybrid Merge Sort')
     plt.legend()
+    plt.grid(True)
     plt.show()
 
 # Function to create and display a table of results
@@ -148,21 +157,47 @@ def display_table(array_sizes, merge_times, insertion_times, hybrid_times):
     print(df.to_string(index=False))  # Print the table without the index
     return df
 
-# Run and collect timing data
-def main():
-    filenames = ['1000.txt', '2500.txt', '5000.txt','10000.txt','25000.txt','50000.txt','100000.txt','250000.txt','500000.txt','1000000.txt']  # List of text files
-    arrays = read_arrays_from_multiple_files(filenames)  # Read arrays from multiple files
-    array_sizes = [len(arr) for arr in arrays]
-
+# Function to test sorting algorithms for each file separately
+def test_sorting_algorithms_for_file(filename, thresholds):
+    arrays = read_arrays_from_file(filename)  # Read arrays from the file
+    
+    print(f"\nProcessing file: {filename}")
+    
+    # Test Merge Sort and record time in nanoseconds
     merge_times = test_merge_sort(arrays.copy())
+    
+    # Test Insertion Sort and record time in nanoseconds
     insertion_times = test_insertion_sort(arrays.copy())
-    hybrid_times = test_hybrid_merge_sort(arrays.copy(), thresholds=[10, 20, 50, 100])
-
+    
+    # Test Hybrid Merge Sort and record time in nanoseconds
+    hybrid_times = test_hybrid_merge_sort(arrays.copy(), thresholds)
+    
     # Plot the results
-    plot_results(array_sizes, merge_times, insertion_times, hybrid_times)
-
+    plot_results([len(arr) for arr in arrays], merge_times, insertion_times, hybrid_times)
+    
     # Display the table
-    table_df = display_table(array_sizes, merge_times, insertion_times, hybrid_times)
+    table_df = display_table([len(arr) for arr in arrays], merge_times, insertion_times, hybrid_times)
+    return table_df
+
+# Function to process multiple files
+def process_multiple_files(filenames, thresholds):
+    results = {}
+    for filename in filenames:
+        results[filename] = test_sorting_algorithms_for_file(filename, thresholds)
+    return results
+
+# Main function
+def main():
+    filenames = ['arrays1.txt', 'arrays2.txt', 'arrays3.txt']  # List of text files
+    thresholds = [10, 20, 50, 100]  # Different thresholds for hybrid merge sort
+
+    # Process each file and collect results
+    results = process_multiple_files(filenames, thresholds)
+
+    # Optionally, print or save the results
+    for filename, table_df in results.items():
+        print(f"\nResults for {filename}:")
+        print(table_df)
 
 if __name__ == '__main__':
     main()
