@@ -2,7 +2,8 @@ import random
 import time
 import matplotlib.pyplot as plt
 import pandas as pd
-
+import sys
+sys.set_int_max_str_digits(10000000)  # Set this to a value higher than your file's needs
 # Insertion Sort Implementation
 def insertion_sort(A):
     for j in range(1, len(A)):
@@ -56,17 +57,29 @@ def hybrid_merge_sort(arr, temp, p, r, threshold):
 # Function to read arrays from a single text file and handle commas
 def read_arrays_from_file(filename):
     arrays = []
-    with open(filename, 'r') as file:
-        for line in file:
-            line = line.strip()  # Remove leading/trailing whitespaces
-            if line:  # Ensure the line isn't empty
-                try:
-                    # Replace commas with spaces, then split and convert to integers
-                    array = list(map(int, line.replace(',', '').split()))
-                    arrays.append(array)
-                except ValueError as e:
-                    print(f"Error reading line '{line}' in file {filename}: {e}")
+    try:
+        with open(filename, 'r') as file:
+            for line in file:
+                line = line.strip()  # Remove leading/trailing whitespaces
+                if line:  # Ensure the line isn't empty
+                    # Debug: Print the line read from the file
+                    print(f"Read line from {filename}: {line}")
+                    try:
+                        # Replace commas with spaces, then split and convert to integers
+                        array = list(map(int, line.replace(',', '').split()))
+                        arrays.append(array)
+                    except ValueError as e:
+                        print(f"Error reading line '{line}' in file {filename}: {e}")
+    except FileNotFoundError:
+        print(f"File {filename} not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    # Debug: Print the arrays read from the file
+    print(f"Arrays read from {filename}: {arrays}")
+    
     return arrays
+
 
 # Function to read arrays from multiple text files
 def read_arrays_from_multiple_files(filenames):
