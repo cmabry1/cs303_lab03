@@ -188,7 +188,7 @@ def process_multiple_files(filenames, thresholds):
 
 # Main function
 def main():
-    filenames = ['arrays1.txt', 'arrays2.txt', 'arrays3.txt']  # List of text files
+    filenames = ['1000.txt', '2500.txt', '5000.txt','10000.txt','25000.txt','50000.txt','100000.txt','250000.txt','500000.txt','1000000.txt']  # List of text files
     thresholds = [10, 20, 50, 100]  # Different thresholds for hybrid merge sort
 
     # Process each file and collect results
