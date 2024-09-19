@@ -1,7 +1,7 @@
 import random
 import time
 import matplotlib.pyplot as plt
-import pandas as pd  # For creating and displaying the table
+import pandas as pd
 
 # Insertion Sort Implementation
 def insertion_sort(A):
@@ -53,70 +53,74 @@ def hybrid_merge_sort(arr, temp, p, r, threshold):
             hybrid_merge_sort(arr, temp, q + 1, r, threshold)
             merge(arr, temp, p, q, r)
 
-# Helper function to generate random arrays
-def generate_array(n):
-    return [random.randint(1, 10000) for _ in range(n)]
+# Function to read arrays from a single text file
+def read_arrays_from_file(filename):
+    arrays = []
+    with open(filename, 'r') as file:
+        for line in file:
+            array = list(map(int, line.strip().split()))
+            arrays.append(array)
+    return arrays
+
+# Function to read arrays from multiple text files
+def read_arrays_from_multiple_files(filenames):
+    all_arrays = []
+    for filename in filenames:
+        arrays = read_arrays_from_file(filename)
+        all_arrays.extend(arrays)  # Add arrays from this file to the overall list
+    return all_arrays
 
 # Test Merge Sort and record time in nanoseconds
-def test_merge_sort():
-    array_lengths = [100, 1000, 5000, 10000]
+def test_merge_sort(arrays):
     merge_times = []
 
-    for n in array_lengths:
-        arr = generate_array(n)
-        temp = [0] * n
+    for arr in arrays:
+        temp = [0] * len(arr)
         start_time = time.time_ns()  # Measure time in nanoseconds
-        merge_sort(arr, temp, 0, n - 1)
+        merge_sort(arr, temp, 0, len(arr) - 1)
         end_time = time.time_ns()
         merge_times.append(end_time - start_time)
-        print(f"Array size: {n}, Time taken by Merge Sort: {end_time - start_time} nanoseconds")
+        print(f"Array size: {len(arr)}, Time taken by Merge Sort: {end_time - start_time} nanoseconds")
 
     return merge_times
 
 # Test Insertion Sort and record time in nanoseconds
-def test_insertion_sort():
-    array_lengths = [100, 1000, 5000, 10000]
+def test_insertion_sort(arrays):
     insertion_times = []
 
-    for n in array_lengths:
-        arr = generate_array(n)
+    for arr in arrays:
         start_time = time.time_ns()  # Measure time in nanoseconds
         insertion_sort(arr)
         end_time = time.time_ns()
         insertion_times.append(end_time - start_time)
-        print(f"Array size: {n}, Time taken by Insertion Sort: {end_time - start_time} nanoseconds")
+        print(f"Array size: {len(arr)}, Time taken by Insertion Sort: {end_time - start_time} nanoseconds")
 
     return insertion_times
 
 # Test Hybrid Merge Sort and record time in nanoseconds
-def test_hybrid_merge_sort():
-    array_lengths = [100, 1000, 5000, 10000]
-    thresholds = [10, 20, 50, 100]  # Different cutoff values
+def test_hybrid_merge_sort(arrays, thresholds):
     hybrid_times = {t: [] for t in thresholds}
 
     for threshold in thresholds:
         print(f"\nTesting hybrid merge sort with threshold {threshold}:")
-        for n in array_lengths:
-            arr = generate_array(n)
-            temp = [0] * n
+        for arr in arrays:
+            temp = [0] * len(arr)
             start_time = time.time_ns()  # Measure time in nanoseconds
-            hybrid_merge_sort(arr, temp, 0, n - 1, threshold)
+            hybrid_merge_sort(arr, temp, 0, len(arr) - 1, threshold)
             end_time = time.time_ns()
             hybrid_times[threshold].append(end_time - start_time)
-            print(f"Array size: {n}, Time taken by Hybrid Merge Sort with threshold {threshold}: {end_time - start_time} nanoseconds")
+            print(f"Array size: {len(arr)}, Time taken by Hybrid Merge Sort with threshold {threshold}: {end_time - start_time} nanoseconds")
 
     return hybrid_times
 
 # Plotting function to visualize the results
-def plot_results(merge_times, insertion_times, hybrid_times):
-    array_lengths = [100, 1000, 5000, 10000]
-
+def plot_results(array_sizes, merge_times, insertion_times, hybrid_times):
     # Plot Merge Sort vs Insertion Sort
-    plt.plot(array_lengths, merge_times, label='Merge Sort')
-    plt.plot(array_lengths, insertion_times, label='Insertion Sort')
+    plt.plot(array_sizes, merge_times, label='Merge Sort')
+    plt.plot(array_sizes, insertion_times, label='Insertion Sort')
     
     for threshold, times in hybrid_times.items():
-        plt.plot(array_lengths, times, label=f'Hybrid Merge Sort (threshold={threshold})')
+        plt.plot(array_sizes, times, label=f'Hybrid Merge Sort (threshold={threshold})')
 
     plt.xlabel('Array Size')
     plt.ylabel('Execution Time (nanoseconds)')
@@ -125,13 +129,12 @@ def plot_results(merge_times, insertion_times, hybrid_times):
     plt.show()
 
 # Function to create and display a table of results
-def display_table(merge_times, insertion_times, hybrid_times):
-    array_lengths = [100, 1000, 5000, 10000]
+def display_table(array_sizes, merge_times, insertion_times, hybrid_times):
     thresholds = [10, 20, 50, 100]
 
     # Create a DataFrame to store the results
     data = {
-        'Array Size': array_lengths,
+        'Array Size': array_sizes,
         'Merge Sort (ns)': merge_times,
         'Insertion Sort (ns)': insertion_times,
     }
@@ -146,12 +149,20 @@ def display_table(merge_times, insertion_times, hybrid_times):
     return df
 
 # Run and collect timing data
-merge_times = test_merge_sort()
-insertion_times = test_insertion_sort()
-hybrid_times = test_hybrid_merge_sort()
+def main():
+    filenames = ['1000.txt', '2500.txt', '5000.txt','10000.txt','25000.txt','50000.txt','100000.txt','250000.txt','500000.txt','1000000.txt']  # List of text files
+    arrays = read_arrays_from_multiple_files(filenames)  # Read arrays from multiple files
+    array_sizes = [len(arr) for arr in arrays]
 
-# Plot the results
-plot_results(merge_times, insertion_times, hybrid_times)
+    merge_times = test_merge_sort(arrays.copy())
+    insertion_times = test_insertion_sort(arrays.copy())
+    hybrid_times = test_hybrid_merge_sort(arrays.copy(), thresholds=[10, 20, 50, 100])
 
-# Display the table
-table_df = display_table(merge_times, insertion_times, hybrid_times)
+    # Plot the results
+    plot_results(array_sizes, merge_times, insertion_times, hybrid_times)
+
+    # Display the table
+    table_df = display_table(array_sizes, merge_times, insertion_times, hybrid_times)
+
+if __name__ == '__main__':
+    main()
