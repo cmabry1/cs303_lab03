@@ -79,14 +79,6 @@ def read_arrays_from_file(filename):
     
     return arrays
 
-# Function to read arrays from multiple text files
-def read_arrays_from_multiple_files(filenames):
-    all_arrays = []
-    for filename in filenames:
-        arrays = read_arrays_from_file(filename)
-        all_arrays.extend(arrays)  # Add arrays from this file to the overall list
-    return all_arrays
-
 # Test Merge Sort and record time in nanoseconds
 def test_merge_sort(arrays):
     merge_times = []
@@ -168,47 +160,51 @@ def display_table(array_sizes, merge_times, insertion_times, hybrid_times):
     print(df.to_string(index=False))  # Print the table without the index
     return df
 
-# Function to test sorting algorithms for each file separately
-def test_sorting_algorithms_for_file(filename, thresholds):
-    arrays = read_arrays_from_file(filename)  # Read arrays from the file
+# Function to test sorting algorithms for each file separately and combine the results
+def test_sorting_algorithms_for_files(filenames, thresholds):
+    all_merge_times = []
+    all_insertion_times = []
+    all_hybrid_times = {t: [] for t in thresholds}
+    all_array_sizes = []
+
+    for filename in filenames:
+        arrays = read_arrays_from_file(filename)  # Read arrays from the file
+        array_sizes = [len(arr) for arr in arrays]
+        all_array_sizes.extend(array_sizes)
+        
+        print(f"\nProcessing file: {filename}")
+        
+        # Test Merge Sort and record time in nanoseconds
+        merge_times = test_merge_sort(arrays.copy())
+        all_merge_times.extend(merge_times)
+        
+        # Test Insertion Sort and record time in nanoseconds
+        insertion_times = test_insertion_sort(arrays.copy())
+        all_insertion_times.extend(insertion_times)
+        
+        # Test Hybrid Merge Sort and record time in nanoseconds
+        hybrid_times = test_hybrid_merge_sort(arrays.copy(), thresholds)
+        for threshold in thresholds:
+            all_hybrid_times[threshold].extend(hybrid_times[threshold])
     
-    print(f"\nProcessing file: {filename}")
-    
-    # Test Merge Sort and record time in nanoseconds
-    merge_times = test_merge_sort(arrays.copy())
-    
-    # Test Insertion Sort and record time in nanoseconds
-    insertion_times = test_insertion_sort(arrays.copy())
-    
-    # Test Hybrid Merge Sort and record time in nanoseconds
-    hybrid_times = test_hybrid_merge_sort(arrays.copy(), thresholds)
-    
-    # Plot the results
-    plot_results([len(arr) for arr in arrays], merge_times, insertion_times, hybrid_times)
+    # Plot the results for all files
+    plot_results(all_array_sizes, all_merge_times, all_insertion_times, all_hybrid_times)
     
     # Display the table
-    table_df = display_table([len(arr) for arr in arrays], merge_times, insertion_times, hybrid_times)
+    table_df = display_table(all_array_sizes, all_merge_times, all_insertion_times, all_hybrid_times)
     return table_df
-
-# Function to process multiple files
-def process_multiple_files(filenames, thresholds):
-    results = {}
-    for filename in filenames:
-        results[filename] = test_sorting_algorithms_for_file(filename, thresholds)
-    return results
 
 # Main function
 def main():
     filenames = ['1000.txt', '2500.txt', '5000.txt','10000.txt','25000.txt','50000.txt','100000.txt','250000.txt','500000.txt','1000000.txt']  # List of text files
     thresholds = [10, 20, 50, 100]  # Different thresholds for hybrid merge sort
 
-    # Process each file and collect results
-    results = process_multiple_files(filenames, thresholds)
+    # Test sorting algorithms for all files and collect results
+    results_df = test_sorting_algorithms_for_files(filenames, thresholds)
 
     # Optionally, print or save the results
-    for filename, table_df in results.items():
-        print(f"\nResults for {filename}:")
-        print(table_df)
+    print(f"\nCombined Results for all files:")
+    print(results_df)
 
 if __name__ == '__main__':
     main()
